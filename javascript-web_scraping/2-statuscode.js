@@ -8,4 +8,10 @@ if (!url) {
   process.exit(1);
 }
 
-request(url, (error, response) => console.log(`code: ${response ? response.statusCode : 'Error'}`));
+request(url, (error, response) => {
+  if (error) {
+    console.error(`Error: ${error}`);
+    process.exit(1);
+  }
+  console.log(`code: ${response ? response.statusCode : 'Error'}`);
+});
