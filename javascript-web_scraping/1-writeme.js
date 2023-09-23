@@ -9,5 +9,10 @@ if (!filePath || !contentToWrite) {
   process.exit(1);
 }
 
-fs.writeFileSync(filePath, contentToWrite, 'utf-8');
-console.log('File written successfully');
+try {
+  fs.writeFileSync(filePath, contentToWrite, 'utf-8');
+  console.log('File written successfully');
+} catch (err) {
+  console.error(err);
+  process.exit(2);
+}
