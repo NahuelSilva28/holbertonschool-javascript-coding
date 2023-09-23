@@ -1,26 +1,18 @@
 #!/usr/bin/node
-
-const request = require('request');
 const fs = require('fs');
+const request = require('request');
 
-const [url, file] = process.argv.slice(2);
-
-if (!url || !file) {
-  console.error('Usage: ./5-request_store.js <URL> <file_path>');
-  process.exit(1);
-}
+const file = process.argv[3];
+const url = process.argv[2];
 
 request(url, (error, response, body) => {
-  if (error) {
-    console.error(error);
-    process.exit(1);
-  }
-
-  fs.writeFile(file, body, 'utf-8', (err) => {
-    if (err) {
-      console.error(err);
-      process.exit(1);
+    if (error) {
+      console.log(error);
+    } else {
+      fs.writeFile(file, body, 'utf-8', (err) => {
+        if (err) {
+          console.log(err);
+        }
+      });
     }
-    console.log(`File "${file}" written successfully`);
   });
-});
