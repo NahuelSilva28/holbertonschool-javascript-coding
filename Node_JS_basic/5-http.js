@@ -1,36 +1,65 @@
 const http = require('http');
-const { countStudents } = require('./3-read_file_async');
+const url = require('url');
+const fs = require('fs').promises;
 
-const PORT = 1245;
-const HOST = 'localhost';
+async function countStudents(path) {
+  try {
+    const data = await fs.readFile(path, 'utf8');
+    const stringData = data.toString();
+    const arrayData = stringData.split('\n').slice(1);
+    const filteredArrayData = arrayData.filter((line) => line !== '');
+
+    const namesByField = {};
+    filteredArrayData.forEach((line) => {
+      const parts = line.split(',');
+      const firstName = parts[0];
+      const field = parts[3];
+
+      if (!namesByField[field]) {
+        namesByField[field] = [];
+      }
+
+      namesByField[field].push(firstName);
+    });
+
+    const results = [`Number of students: ${filteredArrayData.length}`];
+    const fields = Object.keys(namesByField);
+
+    fields.forEach((field) => {
+      const names = namesByField[field];
+      const count = names.length;
+      const list = names.join(', ');
+      results.push(`Number of students in ${field}: ${count}. List: ${list}`);
+    });
+
+    return results;
+  } catch (error) {
+    throw new Error('Cannot load the database');
+  }
+}
 
 const app = http.createServer((req, res) => {
-  if (req.url === '/') {
-    res.setHeader('Content-Type', 'text/plain');
-    res.statusCode = 200;
-    res.end('Hello Holberton School!\n');
-  } else if (req.url === '/students') {
-    res.setHeader('Content-Type', 'text/plain');
-    res.statusCode = 200;
-    res.write('This is the list of our students\n');
+  const reqUrl = url.parse(req.url).pathname;
+  res.writeHead(200, { 'Content-Type': 'text/plain' });
 
-    countStudents(process.argv[2])
+  if (reqUrl === '/') {
+    res.write('Hello Holberton School!');
+    res.end();
+  } else if (reqUrl === '/students') {
+    const path = process.argv[2];
+    res.write('This is the list of our students\n');
+    countStudents(path)
       .then((data) => {
-        res.write(data);
+        res.write(data.join('\n'));
         res.end();
       })
-      .catch((error) => {
-        res.end(error.message);
+      .catch((err) => {
+        res.write(err.message);
+        res.end();
       });
-  } else {
-    res.setHeader('Content-Type', 'text/plain');
-    res.statusCode = 404;
-    res.end('Not Found\n');
   }
 });
 
-app.listen(PORT, HOST, () => {
-  process.stdout.write(`Server listening at -> http://${HOST}:${PORT}\n`);
-});
+app.listen(1245);
 
 module.exports = app;
